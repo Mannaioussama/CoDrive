@@ -1,0 +1,29 @@
+{
+  "name": "@codrive/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/backend/src/main.js",
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"node dist/backend/src/main.js\""
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/mongoose": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "mongoose": "^8.0.0",
+    "nodemailer": "^10.1.7",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/nodemailer": "^8.0.2",
+    "tsc-watch": "^6.3.1"
+  }
+}
