@@ -91,7 +91,7 @@ test('API NestJS + MongoDB : CRUD, validation, transactions et persistance', { t
  await t.test('métiers conditionnels : deux métiers flotte et intitulé automatique des autres rôles', async () => {
   const baseEmployee = { name: 'Test métier', status: 'Disponible', skills: 'Organisation', load: 0, phone: '' };
   let index = 0;
-  for (const [accessRole, role] of [['GESTIONNAIRE_FLOTTE', 'Mécanicien'], ['GESTIONNAIRE_FLOTTE', 'Préparateur automobile'], ['AGENT_RESERVATION', 'Agent de réservation'], ['AGENT_FACTURATION', 'Agent de facturation'], ['ADMIN', 'Administrateur'], ['CHARGE_CLIENTELE', 'Chargé de clientèle']]) {
+  for (const [accessRole, role] of [['GESTIONNAIRE_FLOTTE', 'Mécanicien'], ['GESTIONNAIRE_FLOTTE', 'Préparateur automobile'], ['AGENT_RESERVATION', 'Agent de réservation'], ['AGENT_FACTURATION', 'Comptabilité'], ['ADMIN', 'Administrateur'], ['CHARGE_CLIENTELE', 'Chargé de clientèle']]) {
    const store = await request('POST', '/resources/employees', { ...baseEmployee, email: `job${index++}@example.com`, accessRole, role }, 201);
    const created = store.employees.find(e => e.name === baseEmployee.name);
    assert.equal(created.role, role);

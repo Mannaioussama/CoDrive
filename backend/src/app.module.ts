@@ -1,22 +1,15 @@
-import { APP_GUARD } from '@nestjs/core';
-import { AuthController } from './controllers/auth.controller';
-import { AccountsController } from './controllers/accounts.controller';
-import { PersonalController } from './controllers/personal.controller';
-import { AuthService } from './services/auth.service';
-import { AuthGuard } from './guards/auth.guard';
-import { SettingsController } from './controllers/settings.controller';
-import { SettingsService } from './services/settings.service';
-import { SettingsSchema } from './models/settings.model';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { attachDatabasePool } from '@vercel/functions';
 import type { Connection } from 'mongoose';
-import { AssignmentsController } from './controllers/assignments.controller';
-import { HealthController } from './controllers/health.controller';
-import { ResourcesController } from './controllers/resources.controller';
-import { ResourcesService } from './services/resources.service';
-import { modelDefinitions } from './models/resource.models';
+import { AuthModule } from './modules/auth/auth.module';
+import { SettingsModule } from './modules/settings/settings.module';
+import { ResourcesModule } from './modules/resources/resources.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { ReservationsModule } from './modules/reservations/reservations.module';
+import { ComplaintsModule } from './modules/complaints/complaints.module';
+
 @Module({
  imports: [
   ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
@@ -28,7 +21,6 @@ import { modelDefinitions } from './models/resource.models';
     maxPoolSize: 10,
     maxIdleTimeMS: 5000,
     retryAttempts: 1,
-    // VERIFY: attachDatabasePool closes idle Mongo clients before Fluid compute suspension.
     connectionFactory: (connection: Connection) => {
      const client = connection.getClient?.();
      if (client) attachDatabasePool(client);
@@ -36,9 +28,12 @@ import { modelDefinitions } from './models/resource.models';
     },
    }),
   }),
-  MongooseModule.forFeature([...modelDefinitions, { name: 'WorkspaceSettings', schema: SettingsSchema, collection: 'workspace_settings' }]),
+  AuthModule,
+  SettingsModule,
+  ResourcesModule,
+  VehiclesModule,
+  ReservationsModule,
+  ComplaintsModule,
  ],
- controllers: [AuthController, AccountsController, PersonalController, SettingsController, ResourcesController, AssignmentsController, HealthController],
- providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }, ResourcesService, SettingsService],
 })
 export class AppModule {}
