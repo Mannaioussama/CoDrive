@@ -34,14 +34,16 @@ Pour une version compilée : `npm run build:all`, puis `npm run api:start` et `n
 
 ## Configuration
 
-Les valeurs par défaut permettent de démarrer sans fichier `.env`.
+Les valeurs par défaut permettent de démarrer sans fichier `.env`. Des modèles versionnés existent :
 
-- `.env.example` à la racine : `API_URL`, destination du proxy Next.js.
-- `backend/.env.example` : `MONGODB_URI`, `HOST`, `PORT`, `CORS_ORIGINS`. Copier en `backend/.env` pour les personnaliser (les scripts npm workspace s’exécutent dans `backend/`).
+- `.env.example` à la racine : `API_URL` (destination du proxy Next.js). Copier en `.env.local` pour le frontend.
+- `backend/.env.example` : `MONGODB_URI`, `HOST`, `PORT`, `CORS_ORIGINS`, `ALLOWED_ORIGINS`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `APP_URL`, `SMTP_*`. Copier en `backend/.env` (les scripts npm workspace s’exécutent dans `backend/`).
 - MongoDB : `mongodb://127.0.0.1:27018/fleetpro?replicaSet=fleetpro-rs`.
-- Next.js transmet `/api/*` à NestJS. Le navigateur utilise la même origine que l’interface. Redémarrer/recompiler Next.js après modification de `API_URL`.
+- Next.js transmet `/api/*` à NestJS. Le navigateur utilise la même origine que l’interface. `API_URL` est lu au **build** : redémarrer/recompiler Next.js après modification.
 
-L’API est liée par défaut à `127.0.0.1` et protégée par des sessions de 24 heures. L’inscription publique (`POST /api/auth/setup`) est fermée. Un administrateur provisionné gère les comptes d’employés invités. Les mots de passe sont hachés avec scrypt et un sel aléatoire ; seul un condensat du jeton de session est stocké dans MongoDB. Le cookie est HttpOnly et SameSite=Lax, avec Secure en HTTPS. Déconnexion, désactivation et changement de rôle révoquent les sessions concernées. Une limitation protège les tentatives de connexion et d’activation.
+L’API est liée par défaut à `127.0.0.1` et protégée par des sessions de 24 heures. L’inscription publique (`POST /api/auth/setup`) est fermée. Si `ADMIN_EMAIL` et `ADMIN_PASSWORD` sont définis et qu’aucun administrateur avec mot de passe n’existe encore, l’API crée ce compte au démarrage. Les mots de passe sont hachés avec scrypt et un sel aléatoire ; seul un condensat du jeton de session est stocké dans MongoDB. Le cookie est HttpOnly et SameSite=Lax, avec Secure en HTTPS. Déconnexion, désactivation et changement de rôle révoquent les sessions concernées. Une limitation (10 tentatives / 15 min / IP, collection MongoDB `auth_attempts`) protège la connexion et l’activation.
+
+Déploiement Vercel (frontend + API + Atlas) : voir [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ### Comptes, invitations et permissions
 

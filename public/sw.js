@@ -1,4 +1,4 @@
-const CACHE = 'codrive-v9-roles';
+const CACHE = 'codrive-v10-vercel';
 const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/jakarta.woff2', '/mono.woff2'];
 self.addEventListener('install', event => {
  event.waitUntil((async () => {

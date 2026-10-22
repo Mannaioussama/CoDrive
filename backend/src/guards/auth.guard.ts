@@ -1,17 +1,29 @@
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { canManage, type ManagementModule, type AuthUser } from '../../../lib/access';
 import { AuthService } from '../services/auth.service';
 import { AuthController } from '../controllers/auth.controller';
 import { PersonalController } from '../controllers/personal.controller';
+import { IS_PUBLIC_KEY } from '../public.decorator';
+
+function headerHost(value: string | string[] | undefined): string | undefined {
+ if (!value) return undefined;
+ const raw = Array.isArray(value) ? value[0] : value;
+ return raw.split(',')[0]?.trim() || undefined;
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
- constructor(private readonly auth: AuthService) {}
+ constructor(private readonly auth: AuthService, private readonly reflector: Reflector) {}
  async canActivate(context: ExecutionContext) {
+  if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()])) return true;
   const req = context.switchToHttp().getRequest<Request & { user: AuthUser }>();
   if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.headers.origin) {
    let host: string; try { host = new URL(req.headers.origin).host; } catch { throw new ForbiddenException(); }
-   if (host !== req.headers.host && host !== req.headers['x-forwarded-host']) throw new ForbiddenException('Origine refusée.');
+   const forwarded = headerHost(req.headers['x-forwarded-host']);
+   const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+   if (host !== req.headers.host && host !== forwarded && !allowed.includes(host)) throw new ForbiddenException('Origine refusée.');
   }
   if (context.getClass() === AuthController) return true;
   const user = await this.auth.user(req);
