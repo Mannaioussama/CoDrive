@@ -9,7 +9,7 @@ Chaque gestion a son dossier. Évitez d’éditer les fichiers des autres.
 | Ressources | `app/gestions/resources/` | UI, onglets, `editor-modal.tsx`, `resources.css` |
 | Véhicules | `app/gestions/vehicles/` | `index.tsx`, `vehicles.css` |
 | Réservations | `app/gestions/reservations/` | `index.tsx`, `reservations.css` |
-| Comptabilité | `app/gestions/billing/` | `index.tsx`, `billing.css` (+ `lib/billing.ts` plus tard) |
+| Comptabilité | `app/gestions/billing/` | `index.tsx`, `billing-api.ts`, `billing.css` (+ `lib/billing.ts`) |
 | Réclamations | `app/gestions/complaints/` | `index.tsx`, `complaints.css` |
 
 - **Shell / auth / navigation** : `app/page.tsx` (entrée mince) + composants dans `app/components/` (`auth-gate`, `dashboard`, etc.). Le shell métier actuel vit encore dans `app/gestions/resources/resources-gestion.tsx` (seule gestion complète) ; les autres gestions sont montées via `app/gestions/index.ts`.
@@ -26,16 +26,19 @@ Chaque gestion a son dossier. Évitez d’éditer les fichiers des autres.
 | Véhicules (stub `GET /api/vehicles/ping`) | `modules/vehicles/` |
 | Réservations (stub) | `modules/reservations/` |
 | Réclamations (stub) | `modules/complaints/` |
-| Comptabilité | à ajouter en `modules/billing/` |
+| Comptabilité | `modules/billing/` |
 
 Les routes REST, noms de collections et DTO existants de Ressources / Auth / Settings **ne doivent pas changer**.
 
 ## Types partagés (`lib/`)
 
 - `lib/access.ts` — rôles, permissions (`billing` = Comptabilité à l’affichage)
+- `lib/billing.ts` — millimes, devis, suggestions de prix, TVA
 - `lib/resources.ts` — modèle Ressources
 - `lib/workspace.ts` — thème / agence
 - `lib/api.ts`, hooks `use-resources` / `use-workspace`
+
+Tests manuels Comptabilité : `docs/TEST-COMPTA.md`. Seed optionnel : `npm run seed:billing`.
 
 ## Déploiement
 

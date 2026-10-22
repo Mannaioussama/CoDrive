@@ -1,1 +1,20 @@
-/* Styles for billing gestion — extend without editing other gestions. */
+.billing-root { display: flex; flex-direction: column; gap: 1rem; }
+.billing-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .75rem; }
+.billing-kpi { background: var(--panel, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: .9rem 1rem; }
+.billing-kpi span { display: block; font-size: .8rem; opacity: .7; }
+.billing-kpi strong { font-size: 1.15rem; }
+.billing-stack { display: flex; flex-direction: column; gap: 1rem; }
+.billing-form-row, .billing-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin: .75rem 0; }
+.billing-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; }
+.billing-list li, .billing-suggestion { border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: .75rem 1rem; }
+.billing-suggestion header { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+.billing-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.billing-readonly, .billing-error, .muted { margin: .5rem 0; }
+.billing-error { color: #b42318; }
+.billing-quote { background: color-mix(in srgb, var(--blue, #2563eb) 8%, transparent); padding: .75rem 1rem; border-radius: 10px; }
+.billing-print { display: flex; flex-direction: column; gap: .5rem; padding: 1rem; }
+.overdue { border-color: #f59e0b !important; background: #fffbeb; }
+@media print {
+ .app-shell, .sidebar, .topbar, .tabs, .billing-kpis, .billing-actions, .toast { display: none !important; }
+ .billing-print { display: block !important; }
+}
