@@ -40,7 +40,7 @@ Set for **Production** (and Preview if you use preview deploys):
 | --- | --- |
 | `MONGODB_URI` | Atlas URI from step 1 |
 | `CORS_ORIGINS` | Full origins of the frontend, e.g. `https://codrive.vercel.app` (comma-separated; add preview URLs if needed) |
-| `ALLOWED_ORIGINS` | Frontend **hosts** only (no scheme), e.g. `codrive.vercel.app` — required so CSRF Origin checks pass when Next rewrites to the API host; add `*.vercel.app` preview hosts as comma-separated entries |
+| `ALLOWED_ORIGINS` | Frontend **hosts** only (no scheme), e.g. `codrive.vercel.app` — required so CSRF Origin checks pass when Next rewrites to the API host. Exact hosts only (no wildcards); list each preview host separately |
 | `ADMIN_EMAIL` | First admin email (bootstrap only if no ADMIN with password hash exists) |
 | `ADMIN_PASSWORD` | First admin password (8–128 chars). Never commit. Remove or rotate after first successful login if you prefer |
 | `APP_URL` | Frontend public URL, e.g. `https://codrive.vercel.app` |
@@ -90,7 +90,7 @@ No MongoDB or admin secrets on the frontend project.
 
 ## 6. Preview deployments
 
-1. Add each preview frontend host to API `ALLOWED_ORIGINS` (and matching origins to `CORS_ORIGINS`), **or** temporarily list known preview hosts.
+1. Add each preview frontend host to API `ALLOWED_ORIGINS` (exact hostnames, comma-separated) and matching full origins to `CORS_ORIGINS`. The guard does not support wildcards.
 2. Set frontend Preview `API_URL` to the API **preview** or production URL as you prefer; redeploy when it changes.
 3. **VERIFY:** exact preview hostnames are deployment-specific; update env after first preview URL is known.
 

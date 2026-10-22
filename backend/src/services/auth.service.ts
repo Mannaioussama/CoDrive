@@ -21,16 +21,21 @@ export class AuthService implements OnModuleInit {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
   if (!email || !password) return;
-  if (password.length < 8 || password.length > 128) throw new Error('ADMIN_PASSWORD must be 8–128 characters.');
-  const adminWithHash = await this.db.collection('auth_users').findOne({ role: 'ADMIN', hash: { $type: 'string' } });
-  if (adminWithHash) return;
-  const salt = randomBytes(16).toString('hex');
-  const hash = scryptSync(password, salt, 64).toString('hex');
-  await this.db.collection('auth_users').updateOne(
-   { _id: 'admin' as never },
-   { $set: { email, salt, hash, role: 'ADMIN', active: true }, $setOnInsert: { createdAt: new Date() } },
-   { upsert: true },
-  );
+  try {
+   if (password.length < 8 || password.length > 128) throw new Error('ADMIN_PASSWORD must be 8–128 characters.');
+   const adminWithHash = await this.db.collection('auth_users').findOne({ role: 'ADMIN', hash: { $type: 'string' } });
+   if (adminWithHash) return;
+   const salt = randomBytes(16).toString('hex');
+   const hash = scryptSync(password, salt, 64).toString('hex');
+   await this.db.collection('auth_users').updateOne(
+    { _id: 'admin' as never },
+    { $set: { email, salt, hash, role: 'ADMIN', active: true }, $setOnInsert: { createdAt: new Date() } },
+    { upsert: true },
+   );
+  } catch (error) {
+   const message = error instanceof Error ? error.message : String(error);
+   console.error(`[auth] Admin bootstrap failed (app continues): ${message}`);
+  }
  }
  async status() { return { setupRequired: false, registrationOpen: false }; }
  async user(req: Request): Promise<AuthUser | null> {
@@ -42,30 +47,36 @@ export class AuthService implements OnModuleInit {
   if (!user || !user.active || !user.hash || !accessRoles.includes(user.role)) return null;
   return { id: String(user._id), email: user.email, role: user.role, ...(user.employeeId ? { employeeId: user.employeeId } : {}) };
  }
- private async limit(req: Request) {
-  const key = req.ip || 'local';
-  const now = Date.now();
-  const col = this.db.collection('auth_attempts');
-  const entry = await col.findOne({ _id: key as never });
-  if (entry && entry.expires?.getTime() > now && entry.count >= 10) throw new ForbiddenException('Trop de tentatives. Réessayez dans 15 minutes.');
-  if (!entry || !(entry.expires?.getTime() > now)) {
-   await col.updateOne({ _id: key as never }, { $set: { count: 1, expires: new Date(now + 900000) } }, { upsert: true });
-  } else {
-   await col.updateOne({ _id: key as never }, { $inc: { count: 1 } });
-  }
+ private async limit(req: Request, subject: string) {
+  const key = `${req.ip || 'local'}:${subject}`;
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + 900000);
+  const entry = await this.db.collection('auth_attempts').findOneAndUpdate(
+   { _id: key as never },
+   [{
+    $set: {
+     count: { $cond: [{ $gt: [{ $ifNull: ['$expires', now] }, now] }, { $add: [{ $ifNull: ['$count', 0] }, 1] }, 1] },
+     expires: { $cond: [{ $gt: [{ $ifNull: ['$expires', now] }, now] }, '$expires', windowEnd] },
+    },
+   }],
+   { upsert: true, returnDocument: 'after' },
+  );
+  if ((entry?.count ?? 0) > 10) throw new ForbiddenException('Trop de tentatives. Réessayez dans 15 minutes.');
  }
  private password(value: unknown): string {
   if (typeof value !== 'string' || value.length < 8 || value.length > 128) throw new BadRequestException('Mot de passe de 8 à 128 caractères requis.');
   return value;
  }
  async login(body: unknown, req: Request, res: Response) {
-  await this.limit(req); const value = body as Record<string, unknown>;
+  const value = body as Record<string, unknown>;
+  const emailKey = typeof value?.email === 'string' ? value.email.trim().toLowerCase().slice(0, 254) : 'unknown';
+  await this.limit(req, `login:${emailKey}`);
   const password = this.password(value?.password);
   if (typeof value.email !== 'string' || value.email.length > 254) throw new UnauthorizedException('E-mail ou mot de passe incorrect.');
   const user = await this.db.collection('auth_users').findOne({ email: value.email.trim().toLowerCase() });
   const computed = scryptSync(password, user?.salt || 'invalid', 64);
   if (!user?.active || !user.hash || !accessRoles.includes(user.role) || !timingSafeEqual(computed, Buffer.from(user.hash, 'hex'))) throw new UnauthorizedException('E-mail ou mot de passe incorrect, ou compte non autorisé.');
-  await this.db.collection('auth_attempts').deleteOne({ _id: (req.ip || 'local') as never });
+  await this.db.collection('auth_attempts').deleteOne({ _id: `${req.ip || 'local'}:login:${emailKey}` as never });
   const token = randomBytes(32).toString('hex');
   await this.db.collection('auth_sessions').insertOne({ _id: digest(token) as never, userId: user._id, email: user.email, expires: new Date(Date.now() + 86400000) });
   res.cookie('codrive_session', token, { httpOnly: true, sameSite: 'lax', secure: req.secure || req.headers['x-forwarded-proto'] === 'https', maxAge: 86400000, path: '/' });
@@ -129,7 +140,10 @@ export class AuthService implements OnModuleInit {
   return { activationPath, emailSent, expiresInHours: 48 };
  }
  async activate(body: unknown, req: Request) {
-  await this.limit(req); const value = body as { token?: unknown; password?: unknown }; const password = this.password(value?.password);
+  const value = body as { token?: unknown; password?: unknown };
+  const tokenPrefix = typeof value?.token === 'string' ? value.token.slice(0, 8) : 'unknown';
+  await this.limit(req, `activate:${tokenPrefix}`);
+  const password = this.password(value?.password);
   if (typeof value.token !== 'string' || !/^[a-f0-9]{64}$/.test(value.token)) throw new BadRequestException('Lien invalide ou expiré.');
   const salt = randomBytes(16).toString('hex');
   const result = await this.db.collection('auth_users').updateOne({ activationHash: digest(value.token), active: true, hash: { $exists: false }, activationExpires: { $gt: new Date() } }, { $set: { salt, hash: scryptSync(password, salt, 64).toString('hex') }, $unset: { activationHash: '', activationExpires: '' } });
