@@ -94,9 +94,9 @@ function TarifsPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boolean
       await load();
      }, 'Tarif enregistré.')}>Enregistrer le tarif</button>}
     </div>
-    <div className="billing-form-row">
-     <label>Catégorie<select value={form.category} disabled={!canWrite} onChange={e => setForm({ ...form, category: e.target.value as VehicleCategory })}>{vehicleCategories.map(c => <option key={c} value={c}>{categoryLabels[c]}</option>)}</select></label>
-     <label>Tarif / jour (DT)<input type="number" step="0.001" value={form.dailyDt} disabled={!canWrite} onChange={e => setForm({ ...form, dailyDt: e.target.value })} /></label>
+    <div className="form-row">
+     <label className="field">Catégorie<select value={form.category} disabled={!canWrite} onChange={e => setForm({ ...form, category: e.target.value as VehicleCategory })}>{vehicleCategories.map(c => <option key={c} value={c}>{categoryLabels[c]}</option>)}</select></label>
+     <label className="field">Tarif / jour (DT)<input type="number" step="0.001" value={form.dailyDt} disabled={!canWrite} onChange={e => setForm({ ...form, dailyDt: e.target.value })} /></label>
     </div>
     <ul className="billing-list">{rates.map(r => <li key={String(r.id)}><strong>{categoryLabels[r.category as VehicleCategory] || String(r.category)}</strong> — {millimesToDt(Number(r.dailyMillimes))} / j · depuis {String(r.valideDepuis)}</li>)}</ul>
     {!rates.length && <Empty text="Aucun tarif encore." action="Définir un tarif" onClick={() => undefined} />}
@@ -109,9 +109,9 @@ function TarifsPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boolean
       await load();
      }, 'Saison ajoutée.')}>+ Saison +20 %</button>}
     </div>
-    <div className="billing-form-row">
-     <label>Début<input type="date" value={form.dateDebut} disabled={!canWrite} onChange={e => setForm({ ...form, dateDebut: e.target.value })} /></label>
-     <label>Fin<input type="date" value={form.dateFin} disabled={!canWrite} onChange={e => setForm({ ...form, dateFin: e.target.value })} /></label>
+    <div className="form-row">
+     <label className="field">Début<input type="date" value={form.dateDebut} disabled={!canWrite} onChange={e => setForm({ ...form, dateDebut: e.target.value })} /></label>
+     <label className="field">Fin<input type="date" value={form.dateFin} disabled={!canWrite} onChange={e => setForm({ ...form, dateFin: e.target.value })} /></label>
     </div>
     <ul className="billing-list">{seasons.map(s => <li key={String(s.id)}>{String(s.name)} · {String(s.dateDebut)} → {String(s.dateFin)} · coef {(Number(s.coefficientBp) / BP_UNIT).toFixed(2)}</li>)}</ul>
    </section>
@@ -143,7 +143,7 @@ function TarifsPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boolean
       )}
      </article>
     ))}</div>
-    {!suggestions.length && <p className="muted">Aucune suggestion. Lancez le seed démo ou ajoutez des saisons / signaux.</p>}
+    {!suggestions.length && <p className="billing-muted">Aucune suggestion. Lancez le seed démo ou ajoutez des saisons / signaux.</p>}
    </section>
   </div>
  );
@@ -169,18 +169,22 @@ function InvoicesPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boole
       await load();
      })}>Enregistrer brouillon</button>}
     </div>
-    <div className="billing-form-grid">
-     <label>Raison sociale<input value={draft.raisonSociale} disabled={!canWrite} onChange={e => setDraft({ ...draft, raisonSociale: e.target.value })} /></label>
-     <label>Matricule fiscal<input value={draft.matriculeFiscal} disabled={!canWrite} onChange={e => setDraft({ ...draft, matriculeFiscal: e.target.value })} /></label>
-     <label>Adresse<input value={draft.adresse} disabled={!canWrite} onChange={e => setDraft({ ...draft, adresse: e.target.value })} /></label>
-     <label>Échéance<input type="date" value={draft.dateEcheance} disabled={!canWrite} onChange={e => setDraft({ ...draft, dateEcheance: e.target.value })} /></label>
-     <label>Ligne<label className="sr-only">Libellé</label><input value={draft.label} disabled={!canWrite} onChange={e => setDraft({ ...draft, label: e.target.value })} /></label>
-     <label>Qté<input type="number" value={draft.qty} disabled={!canWrite} onChange={e => setDraft({ ...draft, qty: e.target.value })} /></label>
-     <label>P.U. DT<input type="number" step="0.001" value={draft.unitDt} disabled={!canWrite} onChange={e => setDraft({ ...draft, unitDt: e.target.value })} /></label>
+    <div className="form-row">
+     <label className="field">Raison sociale<input value={draft.raisonSociale} disabled={!canWrite} onChange={e => setDraft({ ...draft, raisonSociale: e.target.value })} /></label>
+     <label className="field">Matricule fiscal<input value={draft.matriculeFiscal} disabled={!canWrite} onChange={e => setDraft({ ...draft, matriculeFiscal: e.target.value })} /></label>
+    </div>
+    <div className="form-row">
+     <label className="field">Adresse<input value={draft.adresse} disabled={!canWrite} onChange={e => setDraft({ ...draft, adresse: e.target.value })} /></label>
+     <label className="field">Échéance<input type="date" value={draft.dateEcheance} disabled={!canWrite} onChange={e => setDraft({ ...draft, dateEcheance: e.target.value })} /></label>
+    </div>
+    <div className="form-row">
+     <label className="field">Libellé de ligne<input value={draft.label} disabled={!canWrite} onChange={e => setDraft({ ...draft, label: e.target.value })} /></label>
+     <label className="field">Quantité<input type="number" value={draft.qty} disabled={!canWrite} onChange={e => setDraft({ ...draft, qty: e.target.value })} /></label>
+     <label className="field">Prix unitaire (DT)<input type="number" step="0.001" value={draft.unitDt} disabled={!canWrite} onChange={e => setDraft({ ...draft, unitDt: e.target.value })} /></label>
     </div>
    </section>
    <section className="panel">
-    <h3>Factures</h3>
+    <div className="panel-heading"><div><h3>Factures</h3><p>Brouillons, émissions et paiements.</p></div></div>
     <div className="table-scroll"><table><thead><tr><th>N°</th><th>Client</th><th>TTC</th><th>Statut</th><th>Actions</th></tr></thead>
      <tbody>{invoices.map(inv => (
       <tr key={String(inv.id)}>
@@ -233,12 +237,14 @@ function ExpensesPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boole
      await load();
     })}>Ajouter</button>}
    </div>
-   <div className="billing-form-grid">
-    <label>Fournisseur<input value={draft.fournisseur} disabled={!canWrite} onChange={e => setDraft({ ...draft, fournisseur: e.target.value })} /></label>
-    <label>Date<input type="date" value={draft.date} disabled={!canWrite} onChange={e => setDraft({ ...draft, date: e.target.value })} /></label>
-    <label>Catégorie<select value={draft.categorie} disabled={!canWrite} onChange={e => setDraft({ ...draft, categorie: e.target.value })}>{['pièces', 'réparation', 'carburant', 'assurance', 'achat stock', 'autre'].map(c => <option key={c}>{c}</option>)}</select></label>
-    <label>TTC (DT)<input value={draft.montantTTC} disabled={!canWrite} onChange={e => setDraft({ ...draft, montantTTC: e.target.value })} /></label>
-    <label>Justificatif<input type="file" disabled={!blobReady || !canWrite} title="Nécessite BLOB_READ_WRITE_TOKEN" /></label>
+   <div className="form-row">
+    <label className="field">Fournisseur<input value={draft.fournisseur} disabled={!canWrite} onChange={e => setDraft({ ...draft, fournisseur: e.target.value })} /></label>
+    <label className="field">Date<input type="date" value={draft.date} disabled={!canWrite} onChange={e => setDraft({ ...draft, date: e.target.value })} /></label>
+   </div>
+   <div className="form-row">
+    <label className="field">Catégorie<select value={draft.categorie} disabled={!canWrite} onChange={e => setDraft({ ...draft, categorie: e.target.value })}>{['pièces', 'réparation', 'carburant', 'assurance', 'achat stock', 'autre'].map(c => <option key={c}>{c}</option>)}</select></label>
+    <label className="field">TTC (DT)<input value={draft.montantTTC} disabled={!canWrite} onChange={e => setDraft({ ...draft, montantTTC: e.target.value })} /></label>
+    <label className="field">Justificatif<input type="file" disabled={!blobReady || !canWrite} title="Nécessite BLOB_READ_WRITE_TOKEN" /></label>
    </div>
    <ul className="billing-list">{rows.map(r => (
     <li key={String(r.id)}>{String(r.date)} · {String(r.fournisseur)} · {millimesToDt(Number(r.montantTTC))} · <Badge tone="gray">{String(r.status)}</Badge>
@@ -284,17 +290,17 @@ function FiscalPanel({ canWrite, busy, run }: { canWrite: boolean; busy: boolean
  return (
   <div className="billing-stack">
    <section className="panel">
-    <h3>Paramètres fiscaux <Badge tone="orange">à vérifier</Badge></h3>
-    <p>VERIFY: TVA par défaut 19 %, timbre 1 DT — modifiables.</p>
-    {settings && <div className="billing-form-row">
-     <label>TVA (bp)<input type="number" value={settings.vatBp} disabled={!canWrite} onChange={e => setSettings({ ...settings, vatBp: Number(e.target.value) })} /></label>
-     <label>Timbre (millimes)<input type="number" value={settings.stampMillimes} disabled={!canWrite} onChange={e => setSettings({ ...settings, stampMillimes: Number(e.target.value) })} /></label>
-     {canWrite && <button className="btn primary small-btn" disabled={busy} onClick={() => void run(async () => { await billingSend('PUT', '/settings', settings); }, 'Paramètres sauvés.')}>Enregistrer</button>}
+    <div className="panel-heading"><div><h3>Paramètres fiscaux <Badge tone="orange">à vérifier</Badge></h3><p>VERIFY: TVA par défaut 19 %, timbre 1 DT — modifiables.</p></div>
+     {canWrite && settings && <button className="btn primary small-btn" disabled={busy} onClick={() => void run(async () => { await billingSend('PUT', '/settings', settings); }, 'Paramètres sauvés.')}>Enregistrer</button>}
+    </div>
+    {settings && <div className="form-row">
+     <label className="field">TVA (bp)<input type="number" value={settings.vatBp} disabled={!canWrite} onChange={e => setSettings({ ...settings, vatBp: Number(e.target.value) })} /></label>
+     <label className="field">Timbre (millimes)<input type="number" value={settings.stampMillimes} disabled={!canWrite} onChange={e => setSettings({ ...settings, stampMillimes: Number(e.target.value) })} /></label>
     </div>}
    </section>
    <section className="panel">
-    <h3>TVA du mois {month}</h3>
-    {vat && <p>Collectée {millimesToDt(Number(vat.collected))} − déductible {millimesToDt(Number(vat.deductible))} = <strong>{millimesToDt(Number(vat.payable))}</strong></p>}
+    <div className="panel-heading"><div><h3>TVA du mois {month}</h3><p>Collectée − déductible = à payer.</p></div></div>
+    {vat && <p className="billing-muted">Collectée {millimesToDt(Number(vat.collected))} − déductible {millimesToDt(Number(vat.deductible))} = <strong>{millimesToDt(Number(vat.payable))}</strong></p>}
    </section>
    <section className="panel">
     <div className="panel-heading"><h3>Obligations</h3>
